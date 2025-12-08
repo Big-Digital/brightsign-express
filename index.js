@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BUILD_DIR = path.join(__dirname, "dist");
 const API_TARGET = "https://eventsapi.nrf.com/api/v2";
-const API_KEY = "T8YF@6aDVmX83uMYfhDX";
+const API_KEY = "FKPiG@bRTarHe6vyNTZg";
 const NORMALIZED_API_TARGET = API_TARGET.replace(/\/$/, "");
 
 // MIME type mapping similar to the HTTP server
@@ -100,61 +100,64 @@ function serveIndex(req, res) {
 }
 
 /**
- * Minimal proxy for forwarding /sessions requests to the NRF API target.
+ * Minimal proxy for forwarding NRF API requests.
  */
-app.use("/sessions", (req, res) => {
-  let upstreamUrl;
-  try {
-    upstreamUrl = new URL(
-      `${NORMALIZED_API_TARGET}${req.originalUrl.replace(/^\/sessions/, "/sessions")}`
-    );
-  } catch (err) {
-    console.error("Invalid NRF API target URL:", err.message);
-    res.status(500).send("Invalid API configuration");
-    return;
-  }
+function createApiProxy(prefix) {
+  return (req, res) => {
+    let upstreamUrl;
+    try {
+      upstreamUrl = new URL(`${NORMALIZED_API_TARGET}${req.originalUrl}`);
+    } catch (err) {
+      console.error(`Invalid NRF API target URL for ${prefix}:`, err.message);
+      res.status(500).send("Invalid API configuration");
+      return;
+    }
 
-  const client = upstreamUrl.protocol === "https:" ? https : http;
-  const headers = {
-    ...req.headers,
-    host: upstreamUrl.host,
-  };
+    const client = upstreamUrl.protocol === "https:" ? https : http;
+    const headers = {
+      ...req.headers,
+      host: upstreamUrl.host,
+    };
 
-  if (API_KEY) {
-    headers["api-key"] = API_KEY;
-  }
+    if (API_KEY) {
+      headers["api-key"] = API_KEY;
+    }
 
-  const proxyReq = client.request(
-    {
-      protocol: upstreamUrl.protocol,
-      hostname: upstreamUrl.hostname,
-      port: upstreamUrl.port || (upstreamUrl.protocol === "https:" ? 443 : 80),
-      method: req.method,
-      path: `${upstreamUrl.pathname}${upstreamUrl.search}`,
-      headers,
-    },
-    (proxyRes) => {
-      res.status(proxyRes.statusCode || 500);
-      for (const [key, value] of Object.entries(proxyRes.headers)) {
-        if (typeof value !== "undefined") {
-          res.setHeader(key, value);
+    const proxyReq = client.request(
+      {
+        protocol: upstreamUrl.protocol,
+        hostname: upstreamUrl.hostname,
+        port: upstreamUrl.port || (upstreamUrl.protocol === "https:" ? 443 : 80),
+        method: req.method,
+        path: `${upstreamUrl.pathname}${upstreamUrl.search}`,
+        headers,
+      },
+      (proxyRes) => {
+        res.status(proxyRes.statusCode || 500);
+        for (const [key, value] of Object.entries(proxyRes.headers)) {
+          if (typeof value !== "undefined") {
+            res.setHeader(key, value);
+          }
         }
+        proxyRes.pipe(res);
       }
-      proxyRes.pipe(res);
-    }
-  );
+    );
 
-  proxyReq.on("error", (err) => {
-    console.error("NRF proxy error:", err.message);
-    if (!res.headersSent) {
-      res.status(502).send("Bad Gateway");
-    } else {
-      res.end();
-    }
-  });
+    proxyReq.on("error", (err) => {
+      console.error(`NRF proxy error for ${prefix}:`, err.message);
+      if (!res.headersSent) {
+        res.status(502).send("Bad Gateway");
+      } else {
+        res.end();
+      }
+    });
 
-  req.pipe(proxyReq);
-});
+    req.pipe(proxyReq);
+  };
+}
+
+app.use("/sessions", createApiProxy("/sessions"));
+app.use("/exhibitors", createApiProxy("/exhibitors"));
 
 // Custom static file serving middleware
 app.use((req, res, next) => {
