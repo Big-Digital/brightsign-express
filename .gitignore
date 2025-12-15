@@ -111,7 +111,6 @@ public
 
 # Build outputs
 dist/
-build/
 *.tgz
 *.tar.gz
 
