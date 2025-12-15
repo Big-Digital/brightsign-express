@@ -1,0 +1,97 @@
+<!doctype html><html><head><style>body {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* Internet Explorer/Edge */
+            user-select: none;         /* Standard */
+        }</style><meta charset="utf-8"><title>Caesars Signature American Roulette</title><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><script defer="defer" src="GameLoader.js"></script></head><body><script>window.__GAME_INFO__ = {version : '0.0.6', code : 'CPO_RLT_US', brand : 'cpo'}
+
+    // needed for mock console to work
+    window.game = {
+        gameCode: "CPO_RLT_US",
+        gameCodePostfix: ""
+    };
+    window.theme = "cpo";
+    ////////
+
+    token = (+Date.now()).toString();
+    if (window.location.hash && window.location.hash.indexOf("token=") > -1) {
+        token = window.location.hash.split("token=")[1];
+        if (token.indexOf("&") > -1) {
+            token = token.split("&")[0];
+        }
+    } else {
+        if (window.location.hash && window.location.hash.length > 0) {
+            window.location.hash = window.location.hash + "&token=" + token;
+        } else {
+            window.location.hash = "token=" + token;
+        }
+        window.parent.postMessage({"acc": "new_token", "token": token}, "*")
+    }
+
+    languageCode = "ENG";
+    //if (window.location.hash && window.location.hash.indexOf("languageCode=") > -1) {
+    //    languageCode = window.location.hash.split("languageCode=")[1];
+    //    if (languageCode.indexOf("&") > -1) {
+    //        languageCode = languageCode.split("&")[0];
+    //    }
+    //}
+    hashCageCode = null;
+    //if (window.location.hash && window.location.hash.indexOf("cageCode=") > -1) {
+    //    hashCageCode = window.location.hash.split("cageCode=")[1];
+    //    if (hashCageCode.indexOf("&") > -1) {
+    //        hashCageCode = hashCageCode.split("&")[0];
+    //    }
+    //}
+    hashSocketUrl = null;
+    //if (window.location.hash && window.location.hash.indexOf("socketUrl=") > -1) {
+    //    hashSocketUrl = window.location.hash.split("socketUrl=")[1];
+    //    if (hashSocketUrl.indexOf("&") > -1) {
+    //        hashSocketUrl = hashSocketUrl.split("&")[0];
+    //    }
+    //}
+    hashPlayMode = null;
+    //if (window.location.hash && window.location.hash.indexOf("playMode=") > -1) {
+    //    hashPlayMode = window.location.hash.split("playMode=")[1];
+    //    if (hashPlayMode.indexOf("&") > -1) {
+    //        hashPlayMode = hashPlayMode.split("&")[0];
+    //    }
+//}</script><script>const urlParams   = new URLSearchParams(window.location.search);
+    // IP check added to allow local dev mode when application is accessed via local network
+    const forcedLocalDev = urlParams.get("localDev");
+    const localDev    = forcedLocalDev !== null
+        ? forcedLocalDev.toLowerCase() === "true"
+        : window.location.hostname.includes('192.168.');
+    const hasMock     = window.location.search?.toLowerCase().indexOf("mock=true") > -1;
+    const hasDevtools = window.location.search?.toLowerCase().indexOf("devtools=true") > -1;
+    const mock        = window.location.hostname === "localhost" || hasMock
+    const devtools    = window.location.hostname === "localhost" || hasDevtools
+    const devSettings = { localDev, mock, devtools };
+
+    // badge settings
+    const cdnUrl = "."; // all assets (including scripts) are loaded as `${this.settings.cdnUrl}/assets/`
+    const socketUrl = hashSocketUrl || `wss://prodcopy-services.oryxgaming.com:10071/ws`;
+    const cageCode = hashCageCode || "DEF";
+    const playMode = hashPlayMode || 1;
+    const autoSpin = true;
+    const autoSpinAdvance = false;
+    const showVersionOnLoadScreen = true;
+    const gameCode = window.__GAME_INFO__.code;
+    const brand = window.__GAME_INFO__.brand
+    const settings = {
+        ...Object.fromEntries(Array.from(urlParams.entries()).map(([key, val]) => [key, JSON.parse(val)])),
+        cdnUrl,
+        socketUrl,
+        showVersionOnLoadScreen,
+        token,
+        gameCode,
+        cageCode,
+        languageCode,
+        playMode,
+        autoSpin,
+        autoSpinAdvance,
+        closeButton: false,
+        historyButton: true,
+        brand,
+        cacheHash: (Math.random() + 1).toString(36).substring(2) // force reload
+    };
+    addEventListener("DOMContentLoaded", () => new GameLoader(settings, devSettings))</script></body></html>

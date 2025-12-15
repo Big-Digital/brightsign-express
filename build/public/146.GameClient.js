@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkGameClient=self.webpackChunkGameClient||[]).push([[146],{146:(e,s,n)=>{n.d(s,{KHR_mesh_quantization:()=>i});var t=n(9046);const a="KHR_mesh_quantization";class i{constructor(e){this.name=a,this.enabled=e.isExtensionUsed(a)}dispose(){}}(0,t.Hg)(a),(0,t.Ye)(a,!0,(e=>new i(e)))}}]);

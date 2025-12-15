@@ -1,0 +1,1 @@
+window.__GAME_INFO__ = {version : '1.0.1', code : 'CPO_RLT_US', brand : 'cpo'}

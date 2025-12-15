@@ -109,10 +109,7 @@ public
 .yarn/install-state.gz
 .pnp.*
 
-# Build outputs
-dist/
-*.tgz
-*.tar.gz
+
 
 # Logs
 logs
