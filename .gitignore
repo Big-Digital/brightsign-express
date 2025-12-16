@@ -110,8 +110,6 @@ public
 .pnp.*
 
 # Build outputs
-dist/
-build/
 *.tgz
 *.tar.gz
 
