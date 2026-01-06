@@ -55,12 +55,9 @@
     //    if (hashPlayMode.indexOf("&") > -1) {
     //        hashPlayMode = hashPlayMode.split("&")[0];
     //    }
-//}</script><script>const urlParams   = new URLSearchParams(window.location.search);
+    //}</script><script>const urlParams   = new URLSearchParams(window.location.search);
     // IP check added to allow local dev mode when application is accessed via local network
-    const forcedLocalDev = urlParams.get("localDev");
-    const localDev    = forcedLocalDev !== null
-        ? forcedLocalDev.toLowerCase() === "true"
-        : window.location.hostname.includes('192.168.');
+    const localDev    = window.location.hostname === "localhost" || window.location.hostname.includes('192.168.');
     const hasMock     = window.location.search?.toLowerCase().indexOf("mock=true") > -1;
     const hasDevtools = window.location.search?.toLowerCase().indexOf("devtools=true") > -1;
     const mock        = window.location.hostname === "localhost" || hasMock
