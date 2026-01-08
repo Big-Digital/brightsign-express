@@ -158,6 +158,8 @@ function createApiProxy(prefix) {
 
 app.use("/sessions", createApiProxy("/sessions"));
 app.use("/exhibitors", createApiProxy("/exhibitors"));
+app.use("/sponsors", createApiProxy("/sponsors"));
+app.use("/speakers", createApiProxy("/speakers"));
 
 // Custom static file serving middleware
 app.use((req, res, next) => {
