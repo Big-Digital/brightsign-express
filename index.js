@@ -1,9 +1,80 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const https = require("https");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Minimal, host-locked image proxy to avoid browser CORS restrictions.
+// Usage:
+//   /proxy/image?url=https%3A%2F%2Ffirebasestorage.googleapis.com%2F...
+//
+// Security: this intentionally only allows a small set of upstream hosts.
+const ALLOWED_PROXY_HOSTS = new Set(["firebasestorage.googleapis.com"]);
+app.options("/proxy/image", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type,Range,If-None-Match,If-Modified-Since");
+  res.status(204).end();
+});
+
+app.get("/proxy/image", (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+
+  const rawUrl = req.query.url;
+  if (!rawUrl || typeof rawUrl !== "string") {
+    return res.status(400).send("Missing required query param: url");
+  }
+
+  let upstream;
+  try {
+    upstream = new URL(rawUrl);
+  } catch {
+    return res.status(400).send("Invalid url");
+  }
+
+  if (upstream.protocol !== "https:") {
+    return res.status(400).send("Only https URLs are allowed");
+  }
+  if (!ALLOWED_PROXY_HOSTS.has(upstream.hostname)) {
+    return res.status(403).send("Host is not allowed");
+  }
+
+  // Avoid sending your server's cookies/host headers upstream.
+  const headers = {
+    "User-Agent": "brightsign-express-proxy",
+    // Preserve conditional caching headers if the browser provides them.
+    "If-None-Match": req.header("If-None-Match") || undefined,
+    "If-Modified-Since": req.header("If-Modified-Since") || undefined,
+    "Range": req.header("Range") || undefined,
+  };
+  Object.keys(headers).forEach((k) => headers[k] === undefined && delete headers[k]);
+
+  const upstreamReq = https.request(
+    upstream,
+    { method: "GET", headers },
+    (upstreamRes) => {
+      // Pass through status (including 304) but ensure CORS header is present.
+      res.status(upstreamRes.statusCode || 502);
+
+      // Content headers that are safe/useful for images.
+      const passthroughHeaders = ["content-type", "content-length", "cache-control", "etag", "last-modified", "accept-ranges", "content-range"];
+      for (const h of passthroughHeaders) {
+        const v = upstreamRes.headers[h];
+        if (v) res.set(h, v);
+      }
+
+      upstreamRes.pipe(res);
+    }
+  );
+
+  upstreamReq.on("error", (err) => {
+    res.status(502).send("Proxy error: " + err.message);
+  });
+
+  upstreamReq.end();
+});
 
 // MIME type mapping similar to the HTTP server
 const mimeTypes = {
