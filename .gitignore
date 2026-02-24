@@ -222,3 +222,7 @@ bundle-report.html
 
 # Local development
 .local
+
+public/
+
+build/
