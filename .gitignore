@@ -224,3 +224,9 @@ bundle-report.html
 
 # Local development
 .local
+
+# Build output
+build/
+build/*.*
+
+.DS_Store
