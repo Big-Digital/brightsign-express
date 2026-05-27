@@ -8,8 +8,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BUILD_DIR = path.join(__dirname, "dist");
 const API_TARGET = "https://eventsapi.nrf.com/api/v2";
-const API_KEY = "FKPiG@bRTarHe6vyNTZg";
+const API_KEY = "f5c54dae77150f36ada41638158d8746";
 const NORMALIZED_API_TARGET = API_TARGET.replace(/\/$/, "");
+
+// NRF serves a self-signed certificate on eventsapi.nrf.com, so Node refuses
+// the upstream TLS handshake and the proxy returns 502. Skip verification for
+// upstream requests.
+const upstreamHttpsAgent = new https.Agent({
+  keepAlive: true,
+  rejectUnauthorized: false,
+});
 
 // MIME type mapping similar to the HTTP server
 const mimeTypes = {
@@ -131,6 +139,7 @@ function createApiProxy(prefix) {
         method: req.method,
         path: `${upstreamUrl.pathname}${upstreamUrl.search}`,
         headers,
+        agent: client === https ? upstreamHttpsAgent : undefined,
       },
       (proxyRes) => {
         res.status(proxyRes.statusCode || 500);
