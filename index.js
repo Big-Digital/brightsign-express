@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BUILD_DIR = path.join(__dirname, "dist");
 const API_TARGET = "https://eventsapi.nrf.com/api/v2";
-const API_KEY = "f5c54dae77150f36ada41638158d8746";
+const API_KEY = "BtEoT74UBclrOowI8Zca804tFmsy0JlT";
 const NORMALIZED_API_TARGET = API_TARGET.replace(/\/$/, "");
 
 // NRF serves a self-signed certificate on eventsapi.nrf.com, so Node refuses
@@ -169,6 +169,8 @@ app.use("/sessions", createApiProxy("/sessions"));
 app.use("/exhibitors", createApiProxy("/exhibitors"));
 app.use("/sponsors", createApiProxy("/sponsors"));
 app.use("/speakers", createApiProxy("/speakers"));
+app.use("/eventSponsors", createApiProxy("/eventSponsors"));
+
 
 // Custom static file serving middleware
 app.use((req, res, next) => {
