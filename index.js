@@ -44,7 +44,7 @@ app.use((req, res, next) => {
 
   let filePath = path.join(
     __dirname,
-    "build",
+    "dist",
     ["/"].includes(fullUrl.pathname)
       ? "index.html"
       : fullUrl.pathname.slice(1) // Remove leading slash
